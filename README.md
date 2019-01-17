@@ -5,7 +5,20 @@
 Follow the following instructions to setup a Telegraf, Influxdb, Grafana in docker:
 
 ### Installing
-Instructions - [Setup](https://towardsdatascience.com/get-system-metrics-for-5-min-with-docker-telegraf-influxdb-and-grafana-97cfd957f0ac)
+Follow the instructions given below:
+1) Explicitly create volumes grafana-volume & influxdb-volume and network monitoring
+2) Since volumes were created so the following dummy docker run will set users and create database in influxdb  
+```
+	docker run --rm \
+	-e INFLUXDB_DB=telegraf 
+	-e INFLUXDB_ADMIN_ENABLED=true \
+	-e INFLUXDB_ADMIN_USER=admin -e INFLUXDB_ADMIN_PASSWORD=supersecretpassword \
+	-e INFLUXDB_USER=telegraf -e INFLUXDB_USER_PASSWORD=secretpassword \
+	-v influxdb-volume:/var/lib/influxdb \
+	influxdb /init-influxdb.sh 
+```
+3) Spin up containers using docker compose file
+[Setup](https://towardsdatascience.com/get-system-metrics-for-5-min-with-docker-telegraf-influxdb-and-grafana-97cfd957f0ac)
 
 
 ## Running the tests
