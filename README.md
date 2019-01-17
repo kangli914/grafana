@@ -1,8 +1,9 @@
 # Grafana Work to build monitoring using Docker, Telegraf, Influxdb, Grafana and etc.
 
-One Paragraph of project description goes here
 
 ## Getting Started
+Follow the following instructions to setup a Telegraf, Influxdb, Grafana in docker 
+* [Setup](https://towardsdatascience.com/get-system-metrics-for-5-min-with-docker-telegraf-influxdb-and-grafana-97cfd957f0ac)
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
