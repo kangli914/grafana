@@ -18,9 +18,19 @@ docker run --rm \
 influxdb /init-influxdb.sh 
 ```
 * Spin up InfluxDB, Grafana containers using docker compose file - follow [Setup](https://towardsdatascience.com/get-system-metrics-for-5-min-with-docker-telegraf-influxdb-and-grafana-97cfd957f0ac)
-
 * Install a Telegraf agent for Windows - Sample agent configuration file is here [telegraf](https://github.com/kangli914/grafana/blob/master/telegraf.conf)
-
+```
+[[outputs.influxdb]]
+  urls = ["http://localhost:8086"]
+  database = "telegraf"
+  username = "telegraf"
+  password = "telegraf"
+```
 ## Configure Dashboard 
 Create first dashboard using Telegraf agent metics
 ![alt](https://github.com/kangli914/grafana/blob/master/pic/dashboard.png "Dashboard")
+
+## InfluxDB
+* How 'win_cpu' table (in telegraf database) was stored in InfluxDB as time time series data - 'time' as primary key
+* All fields in 'win_cpu' table mapped to 'Counters' definitions in 'Telegraf.Conf' file
+![alt](https://github.com/kangli914/grafana/blob/master/pic/influxdb.png "influxdb")
