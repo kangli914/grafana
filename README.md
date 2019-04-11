@@ -39,17 +39,17 @@ Create first dashboard using Telegraf agent metics
 Some notes while building dashboard something like below. Grafana + data from PostgresSQL Database
 ![alt](https://github.com/kangli914/grafana/blob/master/pic/examples.png "Dashboard")
 
-### Inverting table from column to row 
-data are stored in different rows of table with same key (runid: 15390) but wanting to achieve to display in one row of table in grafana (columns --> row):
+### Table (type): Inverting table from column to row 
+Sometimes, data are stored in different rows of table with same key (runid: 15390) but wanting to achieve to display in one row of table in grafana (columns --> row):
 ![alt](https://github.com/kangli914/grafana/blob/master/pic/table_col2row.png "table1")
 Tips:
-* make Time-Series Table with 'Options': Time series to columns (instead of rows)
+* make Time-Series Table with 'Options': Time series to columns under 'Table Transform' (instead of rows)
 * standards about 'time', 'value' and 'metric':
 1. time: query must return a column named time that returns either a SQL datetime or any numeric datatype representing unix epoch
 2. metric(s): You may return a column named metric that is used as metric name for the value column. If you return multiple value columns and a column named metric then this column is used as prefix for the series name
 3. value: Any column except time and metric are treated as a value column 
 * In this case:
-1. make key (e.g. runid) as 'time' (so that when inverting from columns to rows. all data with same runid will be in one row)
+1. make key (e.g. runid) as 'time': think of this as timestamps on X-Axes although it's not as long as it's non-string type (so that when inverting from columns to rows. all data with same runid will be in one row)
 2. timestamp as 'value' (so that it will become value after inverting)
 3. takename as 'metric'(series name or header name after inverting)  
 ```
@@ -123,4 +123,70 @@ WHERE $__unixEpochFilter(R.startdatetime / 1000)
 GROUP BY time, value, metric
 ORDER BY time ASC
 
+```
+
+### Graph (type): Using as Bar chart
+Want to compare several data points in a BAR chat view:
+![alt](https://github.com/kangli914/grafana/blob/master/pic/graph_bar.png "graphbar")
+Tips:
+* Use 'Series' for X-Axis:
+![alt](https://github.com/kangli914/grafana/blob/master/pic/series.png "graphbar")
+* Query below also include joining 2 tables on common key so that it can access info across tables:
+```
+FROM runinfo R JOIN stateinfo S ON R.runid = S.runid
+```
+* if use time series, be smart about use the 'time' (S.runid in this case) as key on X-Axes
+```
+SELECT
+  S.runid AS time,
+  '2018 August' AS metric,
+  (S.timestamp - 1536249466000) / 1000 AS value
+FROM stateinfo S
+```
+Full Query:
+```
+C: August
+SELECT
+  S.runid AS time,
+  /*concat_ws(' | ', '2018 August', S.runid) AS metric,*/
+  '2018 August' AS metric,
+  (S.timestamp - 1536249466000) / 1000 AS value
+FROM stateinfo S
+WHERE /*$__unixEpochFilter(S.timestamp / 1000)
+  AND */S.runid = 2230
+  AND S.status LIKE '%ACTION_SUCCEEDED%'
+GROUP BY time, value, metric
+ORDER BY time ASC
+
+B: January
+SELECT
+  R.runid AS time,
+  /*concat_ws(' | ', '2019 January', R.runid) AS metric,*/
+  '2019 January' AS metric,
+  (S.timestamp - extract(epoch from to_timestamp(R.databags::jsonb -> 'request' ->> 'request_time', 'YYYY-MM-DD HH24:MI:SS.US')) * 1000) / 1000 AS value
+FROM runinfo R JOIN stateinfo S ON R.runid = S.runid
+WHERE /*$__unixEpochFilter(S.timestamp / 1000)
+  AND */
+  R.databags::jsonb -> 'request' ->> 'requesting_application' LIKE ${appcode} 
+  AND R.databags::jsonb -> 'request' ->> 'provider_job_id' LIKE '%Perftestjob%'
+  AND R.runid = 12104
+  AND S.status LIKE '%ACTION_SUCCEEDED%'
+GROUP BY time, value, metric
+ORDER BY time ASC
+
+A: March
+SELECT
+  R.runid AS time,
+  /*concat_ws(' | ', '2019 March', R.runid) AS metric,*/
+  '2019 March' AS metric,
+  (S.timestamp - extract(epoch from to_timestamp(R.databags::jsonb -> 'request' ->> 'request_time', 'YYYY-MM-DD HH24:MI:SS.US')) * 1000) / 1000 AS value
+FROM runinfo R JOIN stateinfo S ON R.runid = S.runid
+WHERE /*$__unixEpochFilter(S.timestamp / 1000)
+  AND */
+  R.databags::jsonb -> 'request' ->> 'requesting_application' LIKE ${appcode} 
+  AND R.databags::jsonb -> 'request' ->> 'provider_job_id' LIKE '%Perftestjob%'
+  AND R.runid = 15410
+  AND S.status LIKE '%ACTION_SUCCEEDED%'
+GROUP BY time, value, metric
+ORDER BY time ASC
 ```
