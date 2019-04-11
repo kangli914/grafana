@@ -1,4 +1,4 @@
-# Grafana Work to build monitoring using Docker, Telegraf, Influxdb, Grafana and etc.
+# Grafana Work to build monitoring using Docker, Telegraf, Influxdb, Grafana, PostgresSQL and etc.
 
 
 ## Getting Started
@@ -189,4 +189,14 @@ WHERE /*$__unixEpochFilter(S.timestamp / 1000)
   AND S.status LIKE '%ACTION_SUCCEEDED%'
 GROUP BY time, value, metric
 ORDER BY time ASC
+```
+
+### Build some nested template variables for look-up
+Some times one template variable will need to chain into another template variable.
+For example, out come of Runid variable will be dynamically populated based on the selections on 2 variables provider & code
+![alt](https://github.com/kangli914/grafana/blob/master/pic/templatingV2.png "templating2")
+```
+select distinct runid from runinfo where $__unixEpochFilter(startdatetime / 1000) AND 
+databags::jsonb -> 'request' ->> 'provider_job_id' like $providerid AND 
+databags::jsonb -> 'request' ->> 'requesting_application' like $appcode
 ```
