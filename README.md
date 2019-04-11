@@ -39,8 +39,8 @@ Create first dashboard using Telegraf agent metics
 Some notes while building dashboard something like below. Grafana + data from PostgresSQL Database
 ![alt](https://github.com/kangli914/grafana/blob/master/pic/examples.png "Dashboard")
 
-### Inverting table From column to row 
-data are stored in different rows of table with same key (runid) but wanting to achieve to display in one row of table in grafana (columns --> row):
+### Inverting table from column to row 
+data are stored in different rows of table with same key (runid: 15390) but wanting to achieve to display in one row of table in grafana (columns --> row):
 ![alt](https://github.com/kangli914/grafana/blob/master/pic/table_col2row.png "table1")
 Tips:
 * make Time-Series Table with 'Options': Time series to columns (instead of rows)
@@ -60,3 +60,67 @@ SELECT
 FROM stateinfo S
 ``` 
 ![alt](https://github.com/kangli914/grafana/blob/master/pic/table_col2row2.png "table2")
+Full Query
+```
+D: 'Action' column:
+SELECT 
+  S.runid AS time,
+  S.timestamp AS value,
+  concat_ws(' - ', S.taskname, S.status) AS metric
+FROM stateinfo S
+WHERE $__unixEpochFilter(S.timestamp / 1000)
+  AND S.databag::jsonb -> 'request_details' ->> 'requesting_application' LIKE ${appcode} 
+  AND S.databag::jsonb -> 'request_details' ->> 'provider_job_id' LIKE ${providerid}
+  AND S.runid IN(${runid}) 
+  AND S.status NOT LIKE '%STASHED%'
+  AND S.status LIKE '%ACTION%'
+GROUP BY S.runid, S.timestamp, concat_ws(' - ', S.taskname, S.status)
+ORDER BY S.timestamp ASC
+
+C: 'Sub Task' column:
+SELECT 
+  S.runid AS time,
+  S.timestamp AS value,
+  concat_ws(' - ', S.taskname, S.status) AS metric
+FROM stateinfo S
+WHERE $__unixEpochFilter(S.timestamp / 1000)
+  AND S.databag::jsonb -> 'request_details' ->> 'requesting_application' LIKE ${appcode} 
+  AND S.databag::jsonb -> 'request_details' ->> 'provider_job_id' LIKE ${providerid}
+  AND S.runid IN(${runid}) 
+  AND S.status NOT LIKE '%STASHED%'
+  AND S.status NOT LIKE '%ACTION%'
+GROUP BY S.runid, S.timestamp, concat_ws(' - ', S.taskname, S.status)
+ORDER BY S.timestamp ASC
+
+B: 'IngestRequest' column:
+SELECT
+  R.runid AS time,
+  concat_ws(' - ', 'IngestRequest', '') AS metric,
+  extract(epoch from to_timestamp(R.databags::jsonb -> 'request' ->> 'request_time', 'YYYY-MM-DD HH24:MI:SS.US')) * 1000 AS value
+FROM runinfo R
+WHERE $__unixEpochFilter(R.startdatetime / 1000)
+  AND R.databags::jsonb -> 'request' ->> 'requesting_application' LIKE ${appcode} 
+  AND R.databags::jsonb -> 'request' ->> 'provider_job_id' LIKE ${providerid} 
+  AND R.runid IN(${runid}) 
+  AND R.runstatus LIKE '%COMPLETE%'
+GROUP BY time, value, metric
+ORDER BY time ASC
+
+A: 'Execution Date' column:
+SELECT
+  R.runid AS time,
+  'Date' AS metric,
+  extract(YEAR from to_timestamp(R.databags::jsonb -> 'request' ->> 'request_time', 'YYYY-MM-DD HH24:MI:SS.US'))*10000 + 
+  extract(MONTH from to_timestamp(R.databags::jsonb -> 'request' ->> 'request_time', 'YYYY-MM-DD HH24:MI:SS.US'))*100 +
+  extract(DAY from to_timestamp(R.databags::jsonb -> 'request' ->> 'request_time', 'YYYY-MM-DD HH24:MI:SS.US'))
+  AS value
+FROM runinfo R
+WHERE $__unixEpochFilter(R.startdatetime / 1000)
+  AND R.databags::jsonb -> 'request' ->> 'requesting_application' LIKE ${appcode} 
+  AND R.databags::jsonb -> 'request' ->> 'provider_job_id' LIKE ${providerid} 
+  AND R.runid IN(${runid}) 
+  AND R.runstatus LIKE '%COMPLETE%'
+GROUP BY time, value, metric
+ORDER BY time ASC
+
+```
