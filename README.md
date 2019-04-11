@@ -34,3 +34,7 @@ Create first dashboard using Telegraf agent metics
 * How 'win_cpu' table (in telegraf database) was stored in InfluxDB as time time series data - 'time' as primary key
 * All fields in 'win_cpu' table mapped to 'Counters' definitions in 'Telegraf.Conf' file
 ![alt](https://github.com/kangli914/grafana/blob/master/pic/influxdb.png "influxdb")
+
+## Miscellaneous Notes
+Some notes while building dashboard something like below. Grafana + data from PostgresSQL Database
+![alt](https://github.com/kangli914/grafana/blob/master/pic/examples.png "Dashboard")
