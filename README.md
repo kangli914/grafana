@@ -45,13 +45,13 @@ data are stored in different rows of table with same key (runid: 15390) but want
 Tips:
 * make Time-Series Table with 'Options': Time series to columns (instead of rows)
 * standards about 'time', 'value' and 'metric':
- - time: query must return a column named time that returns either a SQL datetime or any numeric datatype representing unix epoch
- - metric(s): You may return a column named metric that is used as metric name for the value column. If you return multiple value columns and a column named metric then this column is used as prefix for the series name
- - value: Any column except time and metric are treated as a value column 
-* in this case:
- - make key (e.g. runid) as 'time' (so that when inverting from columns to rows. all data with same runid will be in one row)
- - timestamp as 'value' (so that it will become value after inverting)
- - takename as 'metric'(series name or header name after inverting)  
+1. time: query must return a column named time that returns either a SQL datetime or any numeric datatype representing unix epoch
+2. metric(s): You may return a column named metric that is used as metric name for the value column. If you return multiple value columns and a column named metric then this column is used as prefix for the series name
+3. value: Any column except time and metric are treated as a value column 
+* In this case:
+1. make key (e.g. runid) as 'time' (so that when inverting from columns to rows. all data with same runid will be in one row)
+2. timestamp as 'value' (so that it will become value after inverting)
+3. takename as 'metric'(series name or header name after inverting)  
 ```
 SELECT 
   S.runid AS time,
