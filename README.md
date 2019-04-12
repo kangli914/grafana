@@ -1,5 +1,7 @@
 # Grafana Work to build monitoring using Docker, Telegraf, Influxdb, Grafana, PostgresSQL and etc.
-
+Grafana is an open-source Data visualization & Monitoring with support for Graphite, InfluxDB, Prometheus, Elasticsearch and many more databases.
+An a performance guys, I have been looking for an platform for beautiful analytics displaying and monitoring that without writting JavaScript in browsers.
+This is the one, the solutions!!! (maybe later, too earlier to conclude - wanting to see what ElasticSearch stack offers - next)
 
 ## Getting Started
 Follow the following instructions to setup a Telegraf, Influxdb, Grafana in docker:
